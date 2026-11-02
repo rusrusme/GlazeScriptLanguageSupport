@@ -9,14 +9,11 @@ import com.intellij.codeInsight.template.impl.ConstantNode;
 import com.intellij.icons.AllIcons;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.editor.Editor;
-import com.intellij.openapi.project.Project;
 import com.intellij.patterns.PlatformPatterns;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ProcessingContext;
 import net.rusrusme.glaze.psi.*;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 public class GCompletionContributor extends CompletionContributor {
     public GCompletionContributor() {
@@ -25,7 +22,6 @@ public class GCompletionContributor extends CompletionContributor {
         // LIVE TEMPLATE INSERT HANDLERS
         // ========================================================================
 
-        // 1. C-Style For Loop: for (var int32 i = 0; i < count; i++)
         InsertHandler<LookupElement> forCInsertHandler = (ctx, item) -> {
             Editor editor = ctx.getEditor();
             TemplateManager tm = TemplateManager.getInstance(ctx.getProject());
@@ -35,7 +31,6 @@ public class GCompletionContributor extends CompletionContributor {
             tm.startTemplate(editor, template);
         };
 
-        // 2. Range For Loop: for (type item : list)
         InsertHandler<LookupElement> forRangeInsertHandler = (ctx, item) -> {
             Editor editor = ctx.getEditor();
             TemplateManager tm = TemplateManager.getInstance(ctx.getProject());
@@ -46,7 +41,6 @@ public class GCompletionContributor extends CompletionContributor {
             tm.startTemplate(editor, template);
         };
 
-        // 3. ECS Query For Loop: for (entity e, Component c)
         InsertHandler<LookupElement> forEcsInsertHandler = (ctx, item) -> {
             Editor editor = ctx.getEditor();
             TemplateManager tm = TemplateManager.getInstance(ctx.getProject());
@@ -57,7 +51,6 @@ public class GCompletionContributor extends CompletionContributor {
             tm.startTemplate(editor, template);
         };
 
-        // 4. System Live Template
         InsertHandler<LookupElement> systemInsertHandler = (ctx, item) -> {
             Editor editor = ctx.getEditor();
             TemplateManager tm = TemplateManager.getInstance(ctx.getProject());
@@ -67,7 +60,6 @@ public class GCompletionContributor extends CompletionContributor {
             tm.startTemplate(editor, template);
         };
 
-        // 5. on_update Live Template
         InsertHandler<LookupElement> onUpdateInsertHandler = (ctx, item) -> {
             Editor editor = ctx.getEditor();
             TemplateManager tm = TemplateManager.getInstance(ctx.getProject());
@@ -76,7 +68,6 @@ public class GCompletionContributor extends CompletionContributor {
             tm.startTemplate(editor, template);
         };
 
-        // 6. on_event Live Template
         InsertHandler<LookupElement> onEventInsertHandler = (ctx, item) -> {
             Editor editor = ctx.getEditor();
             TemplateManager tm = TemplateManager.getInstance(ctx.getProject());
@@ -85,7 +76,6 @@ public class GCompletionContributor extends CompletionContributor {
             tm.startTemplate(editor, template);
         };
 
-        // 7. Generic Control Flow ()
         InsertHandler<LookupElement> parensInsertHandler = (ctx, item) -> {
             Editor editor = ctx.getEditor();
             TemplateManager tm = TemplateManager.getInstance(ctx.getProject());
@@ -94,7 +84,14 @@ public class GCompletionContributor extends CompletionContributor {
             tm.startTemplate(editor, template);
         };
 
-        // 8. list<T>
+        InsertHandler<LookupElement> callParensInsertHandler = (ctx, item) -> {
+            Editor editor = ctx.getEditor();
+            TemplateManager tm = TemplateManager.getInstance(ctx.getProject());
+            Template template = tm.createTemplate("", "", "($PARAMS$)$END$");
+            template.addVariable("PARAMS", new ConstantNode(""), true);
+            tm.startTemplate(editor, template);
+        };
+
         InsertHandler<LookupElement> listInsertHandler = (ctx, item) -> {
             Editor editor = ctx.getEditor();
             TemplateManager tm = TemplateManager.getInstance(ctx.getProject());
@@ -117,13 +114,13 @@ public class GCompletionContributor extends CompletionContributor {
                 CharSequence text = document.getCharsSequence();
                 PsiElement position = parameters.getPosition();
 
-                // 1. Typsichere Member & Swizzle nach Punkt (.)
+                // 1. Typsichere Member & Swizzles nach Punkt (.)
                 if (offset > 0 && text.charAt(offset - 1) == '.') {
                     addDotCompletions(result, position, text, offset - 1);
                     return;
                 }
 
-                // 2. Die 3 For-Loop Live Templates
+                // 2. Loop Live Templates
                 result.addElement(PrioritizedLookupElement.withPriority(
                         LookupElementBuilder.create("for")
                                 .bold()
@@ -188,10 +185,27 @@ public class GCompletionContributor extends CompletionContributor {
                 // 5. Primitive & Builtin Typen
                 for (String t : new String[]{
                         "void", "uint8", "int8", "uint16", "int16", "uint32", "int32", "uint64", "int64",
-                        "float", "double", "char", "string", "bool", "vec2", "vec3", "vec4", "mat2", "mat3", "mat4", "quat", "entity", "event"
+                        "float", "double", "char", "string", "bool", "entity", "event"
                 }) {
                     result.addElement(PrioritizedLookupElement.withPriority(
                             LookupElementBuilder.create(t).bold().withIcon(AllIcons.Nodes.Type), 90.0));
+                }
+
+                // 6. Math-Typen & Konstruktoren (vec2..4, mat2..4, quat)
+                for (String mathType : new String[]{"vec2", "vec3", "vec4", "mat2", "mat3", "mat4", "quat"}) {
+                    // Als Typ-Bezeichner
+                    result.addElement(PrioritizedLookupElement.withPriority(
+                            LookupElementBuilder.create(mathType).bold().withIcon(AllIcons.Nodes.Type), 90.0));
+
+                    // Als Konstruktor mit Argument-Klammern
+                    result.addElement(PrioritizedLookupElement.withPriority(
+                            LookupElementBuilder.create(mathType)
+                                    .bold()
+                                    .withPresentableText(mathType + "(...)")
+                                    .withTailText(" (constructor)", true)
+                                    .withTypeText(mathType, true)
+                                    .withIcon(AllIcons.Nodes.Method)
+                                    .withInsertHandler(callParensInsertHandler), 92.0));
                 }
 
                 result.addElement(PrioritizedLookupElement.withPriority(
@@ -201,7 +215,7 @@ public class GCompletionContributor extends CompletionContributor {
                                 .withIcon(AllIcons.Nodes.Type)
                                 .withInsertHandler(listInsertHandler), 95.0));
 
-                // 6. User-Defined Components, Structs & Enums als Typen
+                // 7. User-Defined Components, Structs & Enums
                 for (GComponentDeclaration comp : GPsiUtil.findComponents(position)) {
                     if (comp.getNameIdentifier() != null) {
                         result.addElement(PrioritizedLookupElement.withPriority(
@@ -230,7 +244,7 @@ public class GCompletionContributor extends CompletionContributor {
                     }
                 }
 
-                // 7. Sichtbare Variablen & Parameter
+                // 8. Sichtbare Variablen & Parameter
                 for (GPsiUtil.VisibleSymbol sym : GPsiUtil.findVisibleSymbols(position)) {
                     result.addElement(PrioritizedLookupElement.withPriority(
                             LookupElementBuilder.create(sym.name())
@@ -244,7 +258,7 @@ public class GCompletionContributor extends CompletionContributor {
                 String varName = getIdentifierBeforeDot(text, dotOffset);
                 String varType = resolveVariableType(position, varName);
 
-                // 1. Speziell für Builtin 'entity'
+                // 1. Entity
                 if ("entity".equals(varType)) {
                     result.addElement(PrioritizedLookupElement.withPriority(
                             LookupElementBuilder.create("id").withTypeText("uint64", true).withIcon(AllIcons.Nodes.Field).bold(), 200.0));
@@ -259,7 +273,7 @@ public class GCompletionContributor extends CompletionContributor {
                     return;
                 }
 
-                // 2. Speziell für 'list<T>'
+                // 2. List<T>
                 if (varType.startsWith("list")) {
                     result.addElement(PrioritizedLookupElement.withPriority(
                             LookupElementBuilder.create("size").withTypeText("int32", true).withIcon(AllIcons.Nodes.Property).bold(), 200.0));
@@ -272,16 +286,38 @@ public class GCompletionContributor extends CompletionContributor {
                     return;
                 }
 
-                // 3. Vektoren & Quat: Swizzles
+                // 3. Vektoren & Quat: Ausschließlich Swizzles (x, y, z, w etc.)
                 if (isVectorType(varType)) {
                     addVectorSwizzles(result, varType);
                     return;
                 }
 
-                // 4. Custom Structs & Components: Eigene Felder vorschlagen
+                // 4. Custom Structs & Components: Eigene Felder
                 if (!varType.isEmpty()) {
                     boolean found = addCustomMembers(result, position, varType);
                     if (found) return;
+                }
+            }
+
+            private boolean isMatrixType(String typeName) {
+                return "mat2".equals(typeName) || "mat3".equals(typeName) || "mat4".equals(typeName);
+            }
+
+            private void addMatrixMembers(CompletionResultSet result, String matrixType) {
+                int dim = switch (matrixType) {
+                    case "mat2" -> 2;
+                    case "mat3" -> 3;
+                    default -> 4;
+                };
+                String colVecType = "vec" + dim;
+
+                // Spaltenzugriff (col0, col1, ...)
+                for (int i = 0; i < dim; i++) {
+                    result.addElement(PrioritizedLookupElement.withPriority(
+                            LookupElementBuilder.create("col" + i)
+                                    .withTypeText(colVecType, true)
+                                    .withIcon(AllIcons.Nodes.Field)
+                                    .bold(), 220.0));
                 }
             }
 
