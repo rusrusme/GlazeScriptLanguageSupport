@@ -55,6 +55,7 @@
         <quoteHandler fileType="Glaze Script File"
                       className="net.rusrusme.glaze.core.GQuoteHandler"/>
 
+        <internalFileTemplate name="Glaze Script File"/>
     </extensions>
 
     <actions>
