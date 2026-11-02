@@ -41,7 +41,7 @@ public class GParserDefinition implements ParserDefinition {
 
     @Override
     public @NotNull TokenSet getStringLiteralElements() {
-        return TokenSet.create(GTypes.STRING_LITERAL);
+        return TokenSet.create(GTypes.STRING_LITERAL, GTypes.CHAR_LITERAL);
     }
 
     @Override
