@@ -45,7 +45,7 @@ tasks {
     }
 
     generateParser {
-        sourceFile.set(file("src/main/java/net/rusrusme/glaze/grammar/GShader.bnf"))
+        sourceFile.set(file("src/main/java/net/rusrusme/glaze/grammar/GlazeScript.bnf"))
         targetRootOutputDir.set(file("src/main/gen"))
         pathToParser.set("net/rusrusme/glaze/parser/GParser.java")
         pathToPsiRoot.set("net/rusrusme/glaze/psi")

@@ -1,0 +1,383 @@
+{
+  parserClass="net.rusrusme.glaze.parser.GParser"
+  extends="com.intellij.extapi.psi.ASTWrapperPsiElement"
+
+  psiClassPrefix="G"
+  psiImplClassSuffix="Impl"
+  psiPackage="net.rusrusme.glaze.psi"
+  psiImplPackage="net.rusrusme.glaze.psi.impl"
+
+  elementTypeHolderClass="net.rusrusme.glaze.psi.GTypes"
+  elementTypeClass="net.rusrusme.glaze.psi.GElementType"
+  tokenTypeClass="net.rusrusme.glaze.psi.GTokenType"
+
+  tokens=[
+    // Top-level Keywords
+    KEYWORD_STRUCT="struct"
+    KEYWORD_COMPONENT="component"
+    KEYWORD_ENUM="enum"
+    KEYWORD_SYSTEM="system"
+    KEYWORD_FN="fn"
+    KEYWORD_ON_UPDATE="on_update"
+    KEYWORD_ON_EVENT="on_event"
+
+    // Storage / Declarations
+    KEYWORD_LET="let"
+    KEYWORD_VAR="var"
+
+    // Control Flow
+    KEYWORD_IF="if"
+    KEYWORD_ELSE="else"
+    KEYWORD_SWITCH="switch"
+    KEYWORD_CASE="case"
+    KEYWORD_DEFAULT="default"
+    KEYWORD_FOR="for"
+    KEYWORD_WHILE="while"
+    KEYWORD_DO="do"
+    KEYWORD_RETURN="return"
+    KEYWORD_BREAK="break"
+    KEYWORD_CONTINUE="continue"
+    KEYWORD_EXCLUDE="exclude"
+
+    // Primitive Types
+    TYPE_VOID="void"
+    TYPE_UINT8="uint8"
+    TYPE_INT8="int8"
+    TYPE_UINT16="uint16"
+    TYPE_INT16="int16"
+    TYPE_UINT32="uint32"
+    TYPE_INT32="int32"
+    TYPE_UINT64="uint64"
+    TYPE_INT64="int64"
+    TYPE_FLOAT="float"
+    TYPE_DOUBLE="double"
+    TYPE_CHAR="char"
+    TYPE_STRING="string"
+    TYPE_BOOL="bool"
+
+    // Math Types
+    TYPE_VEC2="vec2"
+    TYPE_VEC3="vec3"
+    TYPE_VEC4="vec4"
+    TYPE_MAT2="mat2"
+    TYPE_MAT3="mat3"
+    TYPE_MAT4="mat4"
+    TYPE_QUAT="quat"
+
+    // Builtin ECS Types & Containers
+    TYPE_ENTITY="entity"
+    TYPE_EVENT="event"
+    KEYWORD_LIST="list"
+
+    // Intrinsics
+    INTRINSIC_GET="get"
+    INTRINSIC_ADD="add"
+    INTRINSIC_HAS="has"
+    INTRINSIC_REMOVE="remove"
+    INTRINSIC_REMOVE_AT="remove_at"
+    INTRINSIC_CLEAR="clear"
+
+    // Literals
+    BOOL_TRUE="true"
+    BOOL_FALSE="false"
+    IDENTIFIER="regexp:[a-zA-Z_][a-zA-Z0-9_]*"
+
+    // Operators & Punctuation
+    ARROW="->"
+    SCOPE="::"
+    EQ="=="
+    NEQ="!="
+    LTE="<="
+    GTE=">="
+    LT="<"
+    GT=">"
+    AND="&&"
+    OR="||"
+    NOT="!"
+
+    PLUS="+"
+    MINUS="-"
+    MUL="*"
+    DIV="/"
+    MOD="%"
+    INC="++"
+    DEC="--"
+
+    ASSIGN="="
+    ADD_ASSIGN="+="
+    SUB_ASSIGN="-="
+    MUL_ASSIGN="*="
+    DIV_ASSIGN="/="
+    MOD_ASSIGN="%="
+
+    SEMICOLON=";"
+    COMMA=","
+    DOT="."
+    COLON=":"
+    LBRACE="{"
+    RBRACE="}"
+    LPAREN="("
+    RPAREN=")"
+    LBRACK="["
+    RBRACK="]"
+  ]
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// FILE ROOT & TOP-LEVEL DECLARATIONS
+////////////////////////////////////////////////////////////////////////////////////////////
+
+glazeFile ::= top_level_decl_*
+
+private top_level_decl_ ::= (
+    struct_declaration
+  | component_declaration
+  | enum_declaration
+  | system_declaration
+  | function_declaration
+  | SEMICOLON
+  | COMMENT
+) {recoverWhile=top_level_recover}
+
+private top_level_recover ::= !(
+    KEYWORD_STRUCT | KEYWORD_COMPONENT | KEYWORD_ENUM | KEYWORD_SYSTEM
+  | KEYWORD_FN | SEMICOLON | COMMENT
+)
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// STRUCT, COMPONENT, ENUM
+////////////////////////////////////////////////////////////////////////////////////////////
+
+struct_declaration ::= KEYWORD_STRUCT IDENTIFIER LBRACE field_declaration* RBRACE {
+  pin=1
+  mixin="net.rusrusme.glaze.psi.impl.GNamedElementImpl"
+  implements="com.intellij.psi.PsiNameIdentifierOwner"
+}
+
+component_declaration ::= KEYWORD_COMPONENT IDENTIFIER LBRACE field_declaration* RBRACE {
+  pin=1
+  mixin="net.rusrusme.glaze.psi.impl.GNamedElementImpl"
+  implements="com.intellij.psi.PsiNameIdentifierOwner"
+}
+
+field_declaration ::= type IDENTIFIER (ASSIGN expression)? SEMICOLON? {
+  pin=2
+  recoverWhile=field_recover
+  mixin="net.rusrusme.glaze.psi.impl.GNamedElementImpl"
+  implements="com.intellij.psi.PsiNameIdentifierOwner"
+}
+
+private field_recover ::= !(RBRACE | SEMICOLON | type | IDENTIFIER)
+
+enum_declaration ::= KEYWORD_ENUM IDENTIFIER LBRACE enum_body? RBRACE {
+  pin=1
+  mixin="net.rusrusme.glaze.psi.impl.GNamedElementImpl"
+  implements="com.intellij.psi.PsiNameIdentifierOwner"
+}
+
+private enum_body ::= enum_member (COMMA enum_member)* COMMA?
+
+enum_member ::= IDENTIFIER (ASSIGN INT_LITERAL)? {
+  pin=1
+  mixin="net.rusrusme.glaze.psi.impl.GNamedElementImpl"
+  implements="com.intellij.psi.PsiNameIdentifierOwner"
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// SYSTEMS & FUNCTIONS
+////////////////////////////////////////////////////////////////////////////////////////////
+
+system_declaration ::= KEYWORD_SYSTEM IDENTIFIER LBRACE system_member* RBRACE {
+  pin=1
+  mixin="net.rusrusme.glaze.psi.impl.GNamedElementImpl"
+  implements="com.intellij.psi.PsiNameIdentifierOwner"
+}
+
+system_member ::= on_update_declaration | on_event_declaration | function_declaration
+
+on_update_declaration ::= KEYWORD_ON_UPDATE LPAREN TYPE_FLOAT IDENTIFIER RPAREN block {
+  pin=1
+  mixin="net.rusrusme.glaze.psi.impl.GNamedElementImpl"
+  implements="com.intellij.psi.PsiNameIdentifierOwner"
+}
+
+on_event_declaration ::= KEYWORD_ON_EVENT LPAREN TYPE_EVENT IDENTIFIER RPAREN block {
+  pin=1
+  mixin="net.rusrusme.glaze.psi.impl.GNamedElementImpl"
+  implements="com.intellij.psi.PsiNameIdentifierOwner"
+}
+
+function_declaration ::= KEYWORD_FN return_type IDENTIFIER LPAREN parameter_list? RPAREN block {
+  pin=1
+  mixin="net.rusrusme.glaze.psi.impl.GNamedElementImpl"
+  implements="com.intellij.psi.PsiNameIdentifierOwner"
+}
+
+private parameter_list ::= parameter (COMMA parameter)* {recoverWhile=paren_recover}
+private paren_recover ::= !(RPAREN | LBRACE | SEMICOLON)
+
+parameter ::= type IDENTIFIER {
+  pin=2
+  mixin="net.rusrusme.glaze.psi.impl.GNamedElementImpl"
+  implements="com.intellij.psi.PsiNameIdentifierOwner"
+}
+
+return_type ::= TYPE_VOID | type
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// TYPES
+////////////////////////////////////////////////////////////////////////////////////////////
+
+type ::= primitive_type | math_type | builtin_ecs_type | list_type | user_type
+
+primitive_type ::=
+    TYPE_UINT8 | TYPE_INT8 | TYPE_UINT16 | TYPE_INT16
+  | TYPE_UINT32 | TYPE_INT32 | TYPE_UINT64 | TYPE_INT64
+  | TYPE_FLOAT | TYPE_DOUBLE | TYPE_CHAR | TYPE_STRING | TYPE_BOOL
+
+math_type ::=
+    TYPE_VEC2 | TYPE_VEC3 | TYPE_VEC4
+  | TYPE_MAT2 | TYPE_MAT3 | TYPE_MAT4
+  | TYPE_QUAT
+
+builtin_ecs_type ::= TYPE_ENTITY | TYPE_EVENT
+
+list_type ::= KEYWORD_LIST LT type GT {pin=1}
+
+user_type ::= IDENTIFIER
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// STATEMENTS
+////////////////////////////////////////////////////////////////////////////////////////////
+
+block ::= LBRACE statement* RBRACE {pin=1}
+
+statement ::=
+    block
+  | var_decl_stmt
+  | if_stmt
+  | switch_stmt
+  | for_stmt
+  | while_stmt
+  | do_while_stmt
+  | return_stmt
+  | break_stmt
+  | continue_stmt
+  | expr_stmt
+  | SEMICOLON
+  | COMMENT {recoverWhile=statement_recover}
+
+private statement_recover ::= !(
+    RBRACE | LBRACE | SEMICOLON | COMMENT
+  | KEYWORD_LET | KEYWORD_VAR | KEYWORD_IF | KEYWORD_SWITCH
+  | KEYWORD_FOR | KEYWORD_WHILE | KEYWORD_DO | KEYWORD_RETURN
+  | KEYWORD_BREAK | KEYWORD_CONTINUE | IDENTIFIER
+)
+
+var_decl_stmt ::= (let_declaration | var_declaration) SEMICOLON?
+
+let_declaration ::= KEYWORD_LET type IDENTIFIER ASSIGN expression {
+  pin=1
+  mixin="net.rusrusme.glaze.psi.impl.GNamedElementImpl"
+  implements="com.intellij.psi.PsiNameIdentifierOwner"
+}
+
+var_declaration ::= KEYWORD_VAR type IDENTIFIER (ASSIGN expression)? {
+  pin=1
+  mixin="net.rusrusme.glaze.psi.impl.GNamedElementImpl"
+  implements="com.intellij.psi.PsiNameIdentifierOwner"
+}
+
+if_stmt ::= KEYWORD_IF LPAREN expression RPAREN block
+  (KEYWORD_ELSE KEYWORD_IF LPAREN expression RPAREN block)*
+  (KEYWORD_ELSE block)? {pin=1}
+
+switch_stmt ::= KEYWORD_SWITCH LPAREN expression RPAREN LBRACE switch_case* switch_default? RBRACE {pin=1}
+
+switch_case ::= KEYWORD_CASE expression ARROW (block | statement) {pin=1}
+switch_default ::= KEYWORD_DEFAULT ARROW (block | statement) {pin=1}
+
+for_stmt ::= for_range_stmt | for_c_stmt | for_ecs_stmt
+
+for_range_stmt ::= KEYWORD_FOR LPAREN type IDENTIFIER COLON expression RPAREN block {
+  pin=5
+  mixin="net.rusrusme.glaze.psi.impl.GNamedElementImpl"
+  implements="com.intellij.psi.PsiNameIdentifierOwner"
+}
+
+for_c_stmt ::= KEYWORD_FOR LPAREN for_init? SEMICOLON expression? SEMICOLON expr_or_assign? RPAREN block {pin=4}
+private for_init ::= let_declaration | var_declaration | expr_or_assign
+
+for_ecs_stmt ::= KEYWORD_FOR LPAREN (TYPE_ENTITY IDENTIFIER COMMA)? component_binding (COMMA component_binding)* RPAREN (KEYWORD_EXCLUDE exclude_list)? block {pin=1}
+component_binding ::= IDENTIFIER IDENTIFIER {
+  mixin="net.rusrusme.glaze.psi.impl.GNamedElementImpl"
+  implements="com.intellij.psi.PsiNameIdentifierOwner"
+}
+private exclude_list ::= IDENTIFIER (COMMA IDENTIFIER)*
+
+while_stmt ::= KEYWORD_WHILE LPAREN expression RPAREN block {pin=1}
+do_while_stmt ::= KEYWORD_DO block KEYWORD_WHILE LPAREN expression RPAREN SEMICOLON? {pin=1}
+
+return_stmt ::= KEYWORD_RETURN expression? SEMICOLON? {pin=1}
+break_stmt ::= KEYWORD_BREAK SEMICOLON? {pin=1}
+continue_stmt ::= KEYWORD_CONTINUE SEMICOLON? {pin=1}
+
+expr_stmt ::= expr_or_assign SEMICOLON? {pin=1}
+private expr_or_assign ::= expression (assign_op expression)?
+private assign_op ::= ASSIGN | ADD_ASSIGN | SUB_ASSIGN | MUL_ASSIGN | DIV_ASSIGN | MOD_ASSIGN
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// EXPRESSIONS (PRECEDENCE HIERARCHY)
+////////////////////////////////////////////////////////////////////////////////////////////
+
+expression ::= logic_or_expr
+
+logic_or_expr ::= logic_and_expr (OR logic_and_expr)*
+logic_and_expr ::= equality_expr (AND equality_expr)*
+equality_expr ::= relational_expr (eq_op relational_expr)*
+private eq_op ::= EQ | NEQ
+relational_expr ::= additive_expr (rel_op additive_expr)*
+private rel_op ::= LTE | GTE | LT | GT
+additive_expr ::= multiplicative_expr (add_op multiplicative_expr)*
+private add_op ::= PLUS | MINUS
+multiplicative_expr ::= unary_expr (mul_op unary_expr)*
+private mul_op ::= MUL | DIV | MOD
+
+unary_expr ::= (NOT | MINUS | INC | DEC) unary_expr | postfix_expr
+
+postfix_expr ::= primary_expr (
+    intrinsic_call
+  | member_access
+  | call_expression
+  | array_access
+  | INC
+  | DEC
+)*
+
+member_access ::= DOT IDENTIFIER {pin=1}
+intrinsic_call ::= DOT intrinsic_name LPAREN argument_list? RPAREN {pin=2}
+private intrinsic_name ::=
+    INTRINSIC_GET | INTRINSIC_ADD | INTRINSIC_HAS
+  | INTRINSIC_REMOVE | INTRINSIC_REMOVE_AT | INTRINSIC_CLEAR
+
+array_access ::= LBRACK expression RBRACK {pin=1}
+call_expression ::= LPAREN argument_list? RPAREN {pin=1}
+private argument_list ::= expression (COMMA expression)*
+
+primary_expr ::=
+    scoped_identifier
+  | math_constructor
+  | literal
+  | IDENTIFIER
+  | LPAREN expression RPAREN
+
+scoped_identifier ::= IDENTIFIER SCOPE IDENTIFIER {pin=2}
+math_constructor ::= math_type LPAREN argument_list? RPAREN {pin=2}
+
+literal ::=
+    FLOAT_LITERAL
+  | INT_LITERAL
+  | BOOL_TRUE
+  | BOOL_FALSE
+  | CHAR_LITERAL
+  | STRING_LITERAL

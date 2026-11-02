@@ -1,31 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 32 32">
+<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 16 16">
     <defs>
-        <!-- Deep Blue & Cyan Coding Gradient -->
-        <linearGradient id="scriptGradBlue" x1="4" y1="4" x2="28" y2="28" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#00F2FE" />
-            <stop offset="100%" stop-color="#4FACFE" />
-        </linearGradient>
-
         <!-- Dynamic Multi-Stop Glass Gradient for Center Hexagon -->
-        <linearGradient id="centerFacetGrad" x1="10" y1="9" x2="22" y2="23" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.5" />
-            <stop offset="50%" stop-color="#70E1F5" stop-opacity="0.25" />
-            <stop offset="100%" stop-color="#FFD1ff" stop-opacity="0.15" />
+        <linearGradient id="centerFacetGrad" x1="5" y1="4" x2="11" y2="12" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#55A829" stop-opacity="0.7" />
+            <stop offset="50%" stop-color="#96B41D" stop-opacity="0.7" />
+            <stop offset="100%" stop-color="#29A83C" stop-opacity="0.7" />
         </linearGradient>
     </defs>
 
-    <!-- Background Layer: Abstract Curly Brackets / Script Shell -->
-    <path d="M10 6 C7 6 6 7 6 10 V22 C6 25 7 26 10 26" fill="none" stroke="url(#scriptGradBlue)" stroke-width="3" stroke-linecap="round" />
-    <path d="M22 6 C25 6 26 7 26 10 V22 C26 25 25 26 22 26" fill="none" stroke="url(#scriptGradBlue)" stroke-width="3" stroke-linecap="round" />
+    <!-- Center 'Glaze' Crystalline Hexagon -->
+    <polygon points="8,1 14,4 14,12 8,15 2,12 2,4" fill="url(#centerFacetGrad)" />
 
-    <!-- Center 'Glaze' Crystalline Hexagon / Core Node -->
-    <polygon points="16,9 22,13 22,19 16,23 10,19 10,13" fill="url(#centerFacetGrad)" stroke="#FFFFFF" stroke-width="1.5" stroke-opacity="0.85" />
-
-    <!-- Crystalline Facet Dividers (Adds 3D Gem / Glaze Dimension) -->
-    <path d="M16 9 L16 16 L22 13 Z" fill="#FFFFFF" opacity="0.25" />
-    <path d="M16 16 L10 13 L10 19 Z" fill="#000000" opacity="0.12" />
-    <path d="M16 16 L22 19 L16 23 Z" fill="#FFFFFF" opacity="0.15" />
-
-    <!-- Core Script Execution Spark (Vertex Dot) -->
-    <circle cx="16" cy="16" r="2.5" fill="#FFFFFF" />
+    <!-- Crystalline Facet Dividers-->
+    <path d="M8 1 L8 8 L14 4 Z" fill="#FFFFFF" opacity="0.75" />
+    <path d="M8 8 L2 4 L2 12 Z" fill="#000000" opacity="0.25" />
+    <path d="M8 8 L14 12 L8 15 Z" fill="#FFFFFF" opacity="0.25" />
 </svg>

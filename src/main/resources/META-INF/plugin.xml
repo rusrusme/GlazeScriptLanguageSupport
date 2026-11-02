@@ -1,64 +1,65 @@
 <idea-plugin>
     <id>net.rusrusme.glaze</id>
-    <name>Glacial Shader Language</name>
-    <vendor
-            email="ruslanmelikov.me@gmail.com">rusrusme
-    </vendor>
+    <name>GlazeScript</name>
+    <vendor email="support@rusrusme.net" url="https://github.com/rusrusme">rusrusme</vendor>
+
+    <description><![CDATA[
+    Language support for GlazeScript (.gscript), the scripting language for GlacialEngine.
+    Features:
+    - Syntax highlighting and token recognition
+    - Scope-aware identifier and symbol resolution
+    - Auto-formatting and indentation
+    - ECS loop and system semantic diagnostics
+    - Intelligent member, swizzle, and intrinsic completion
+    ]]></description>
 
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-<!--        <fileType-->
-<!--                name="Glaze Script File"-->
-<!--                implementationClass="net.rusrusme.glaze.core.GFileType"-->
-<!--                fieldName="INSTANCE"-->
-<!--                language="GlazeScript"-->
-<!--                extensions="glaze"/>-->
+        <fileType name="Glaze Script File"
+                  implementationClass="net.rusrusme.glaze.core.GFileType"
+                  fieldName="INSTANCE"
+                  language="GlazeScript"
+                  extensions="gscript"/>
 
-<!--        <lang.parserDefinition-->
-<!--                language="GlazeScript"-->
-<!--                implementationClass="net.rusrusme.glaze.core.GParserDefinition"/>-->
+        <lang.parserDefinition language="GlazeScript"
+                               implementationClass="net.rusrusme.glaze.core.GParserDefinition"/>
 
-<!--        <lang.syntaxHighlighterFactory-->
-<!--                language="GlazeScript"-->
-<!--                implementationClass="net.rusrusme.glaze.highlight.GSyntaxHighlighterFactory"/>-->
+        <lang.syntaxHighlighterFactory language="GlazeScript"
+                                       implementationClass="net.rusrusme.glaze.highlight.GSyntaxHighlighterFactory"/>
 
-<!--        <lang.commenter-->
-<!--                language="GlazeScript"-->
-<!--                implementationClass="net.rusrusme.glaze.core.GCommenter"/>-->
+        <lang.braceMatcher language="GlazeScript"
+                           implementationClass="net.rusrusme.glaze.core.GBraceMatcher"/>
 
-<!--        <annotator-->
-<!--                language="GlazeScript"-->
-<!--                implementationClass="net.rusrusme.glaze.annotator.GAnnotator"/>-->
+        <lang.commenter language="GlazeScript"
+                        implementationClass="net.rusrusme.glaze.core.GCommenter"/>
 
-<!--        <lang.braceMatcher-->
-<!--                language="GlazeScript"-->
-<!--                implementationClass="net.rusrusme.glaze.core.GBraceMatcher"/>-->
+        <lang.quoteHandler language="GlazeScript"
+                           implementationClass="net.rusrusme.glaze.core.GQuoteHandler"/>
 
-<!--        <lang.formatter-->
-<!--                language="GlazeScript"-->
-<!--                implementationClass="net.rusrusme.glaze.formatting.GFormattingModelBuilder"/>-->
+        <completion.contributor language="GlazeScript"
+                                implementationClass="net.rusrusme.glaze.core.GCompletionContributor"/>
 
-<!--        <langCodeStyleSettingsProvider-->
-<!--                implementation="net.rusrusme.glaze.formatting.GLanguageCodeStyleSettingsProvider"/>-->
+        <psi.referenceContributor language="GlazeScript"
+                                  implementation="net.rusrusme.glaze.psi.GReferenceContributor"/>
 
-<!--        <completion.contributor-->
-<!--                language="GlazeScript"-->
-<!--                implementationClass="net.rusrusme.glaze.core.GCompletionContributor"/>-->
+        <annotator language="GlazeScript"
+                   implementationClass="net.rusrusme.glaze.annotator.GAnnotator"/>
 
-<!--        <psi.referenceContributor-->
-<!--                language="GlazeScript"-->
-<!--                implementation="net.rusrusme.glaze.psi.GReferenceContributor"/>-->
+        <lang.formatter language="GlazeScript"
+                        implementationClass="net.rusrusme.glaze.formatting.GFormattingModelBuilder"/>
 
-<!--        <internalFileTemplate name="Glacial Shader File"/>-->
+        <codeStyleSettingsProvider
+                implementation="net.rusrusme.glaze.formatting.GLanguageCodeStyleSettingsProvider"/>
+
     </extensions>
 
     <actions>
-<!--        <action id="glaze.NewFile"-->
-<!--                class="net.rusrusme.glaze.action.GCreateFileAction"-->
-<!--                text="Glacial Shader File"-->
-<!--                description="Create a new Glacial Shader file">-->
-<!--            <add-to-group group-id="NewGroup" anchor="before" relative-to-action="NewFile"/>-->
-<!--        </action>-->
+        <action id="Glaze.NewGlazeFile"
+                class="net.rusrusme.glaze.action.GCreateFileAction"
+                text="Glaze Script File"
+                description="Create new Glaze Script file">
+            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewFile"/>
+        </action>
     </actions>
 </idea-plugin>
