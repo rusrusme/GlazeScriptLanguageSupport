@@ -16,6 +16,52 @@ import net.rusrusme.glaze.psi.*;
 import org.jetbrains.annotations.NotNull;
 
 public class GCompletionContributor extends CompletionContributor {
+    record GlmFunction(@NotNull String name, @NotNull String tailText, @NotNull String typeText) {}
+
+    GlmFunction[] glmFunctions = new GlmFunction[]{
+            // Vektoren
+            new GlmFunction("normalize", "(vec v)", "vec"),
+            new GlmFunction("dot", "(vec a, vec b)", "float"),
+            new GlmFunction("cross", "(vec3 a, vec3 b)", "vec3"),
+            new GlmFunction("length", "(vec v)", "float"),
+            new GlmFunction("distance", "(vec a, vec b)", "float"),
+            new GlmFunction("reflect", "(vec v, vec n)", "vec"),
+            // Matrizen
+            new GlmFunction("inverse", "(mat m)", "mat"),
+            new GlmFunction("transpose", "(mat m)", "mat"),
+            new GlmFunction("determinant", "(mat m)", "float"),
+            // Transformationen
+            new GlmFunction("translate", "(mat4 m, vec3 v)", "mat4"),
+            new GlmFunction("rotate", "(mat4 m, float angle, vec3 axis)", "mat4"),
+            new GlmFunction("scale", "(mat4 m, vec3 v)", "mat4"),
+            new GlmFunction("lookAt", "(vec3 eye, vec3 center, vec3 up)", "mat4"),
+            // Quaternionen
+            new GlmFunction("slerp", "(quat a, quat b, float t)", "quat"),
+            new GlmFunction("conjugate", "(quat q)", "quat"),
+            new GlmFunction("mat4_cast", "(quat q)", "mat4"),
+            // Skalare / Common
+            new GlmFunction("clamp", "(val, min, max)", "T"),
+            new GlmFunction("mix", "(a, b, t)", "T"),
+            new GlmFunction("radians", "(float degrees)", "float"),
+            new GlmFunction("degrees", "(float radians)", "float"),
+            new GlmFunction("sin", "(float rad)", "float"),
+            new GlmFunction("cos", "(float rad)", "float"),
+            new GlmFunction("sqrt", "(float val)", "float"),
+
+            new GlmFunction("step", "(edge, x)", "T"),
+            new GlmFunction("smoothstep", "(edge0, edge1, x)", "T"),
+            new GlmFunction("min", "(a, b)", "T"),
+            new GlmFunction("max", "(a, b)", "T"),
+            new GlmFunction("abs", "(x)", "T"),
+            new GlmFunction("pow", "(base, exp)", "float"),
+            new GlmFunction("tan", "(float rad)", "float"),
+            new GlmFunction("asin", "(float x)", "float"),
+            new GlmFunction("acos", "(float x)", "float"),
+            new GlmFunction("atan", "(float y_over_x)", "float"),
+            new GlmFunction("perspective", "(float fov, float aspect, float near, float far)", "mat4"),
+            new GlmFunction("angleAxis", "(float angle, vec3 axis)", "quat")
+    };
+
     public GCompletionContributor() {
 
         // ========================================================================
@@ -252,6 +298,17 @@ public class GCompletionContributor extends CompletionContributor {
                                     .withIcon(AllIcons.Nodes.Variable)
                                     .bold(), 150.0));
                 }
+
+                for (GlmFunction fn : glmFunctions) {
+                    result.addElement(PrioritizedLookupElement.withPriority(
+                            LookupElementBuilder.create(fn.name())
+                                    .bold()
+                                    .withTailText(fn.tailText(), true)
+                                    .withTypeText(fn.typeText(), true)
+                                    .withIcon(AllIcons.Nodes.Function)
+                                    .withInsertHandler(callParensInsertHandler),
+                            98.0));
+                }
             }
 
             private void addDotCompletions(CompletionResultSet result, PsiElement position, CharSequence text, int dotOffset) {
@@ -296,28 +353,6 @@ public class GCompletionContributor extends CompletionContributor {
                 if (!varType.isEmpty()) {
                     boolean found = addCustomMembers(result, position, varType);
                     if (found) return;
-                }
-            }
-
-            private boolean isMatrixType(String typeName) {
-                return "mat2".equals(typeName) || "mat3".equals(typeName) || "mat4".equals(typeName);
-            }
-
-            private void addMatrixMembers(CompletionResultSet result, String matrixType) {
-                int dim = switch (matrixType) {
-                    case "mat2" -> 2;
-                    case "mat3" -> 3;
-                    default -> 4;
-                };
-                String colVecType = "vec" + dim;
-
-                // Spaltenzugriff (col0, col1, ...)
-                for (int i = 0; i < dim; i++) {
-                    result.addElement(PrioritizedLookupElement.withPriority(
-                            LookupElementBuilder.create("col" + i)
-                                    .withTypeText(colVecType, true)
-                                    .withIcon(AllIcons.Nodes.Field)
-                                    .bold(), 220.0));
                 }
             }
 

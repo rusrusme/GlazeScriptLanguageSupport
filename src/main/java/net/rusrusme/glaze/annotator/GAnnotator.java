@@ -74,9 +74,34 @@ public class GAnnotator implements Annotator {
 
         PsiReference reference = element.getReference();
         if (reference != null && reference.resolve() == null) {
-            holder.newAnnotation(HighlightSeverity.ERROR, "Cannot resolve symbol '" + element.getText() + "'")
+            String name = element.getText();
+            if (isBuiltinMathFunction(name)) {
+                return;
+            }
+            holder.newAnnotation(HighlightSeverity.ERROR, "Cannot resolve symbol '" + name + "'")
                     .range(element)
                     .create();
         }
+
+        String name = element.getText();
+        if (isBuiltinMathFunction(name)) {
+            holder.newSilentAnnotation(HighlightSeverity.INFORMATION)
+                    .range(element)
+                    .textAttributes(GSyntaxHighlighter.INTRINSIC)
+                    .create();
+            return;
+        }
+    }
+
+    private boolean isBuiltinMathFunction(String name) {
+        return switch (name) {
+            case "length", "distance", "dot", "cross", "normalize", "reflect", "refract",
+                 "inverse", "transpose", "determinant",
+                 "translate", "rotate", "scale", "lookAt", "perspective",
+                 "slerp", "conjugate", "mat4_cast", "angleAxis",
+                 "clamp", "mix", "step", "smoothstep", "min", "max", "abs",
+                 "sin", "cos", "tan", "asin", "acos", "atan", "radians", "degrees", "sqrt", "pow" -> true;
+            default -> false;
+        };
     }
 }
