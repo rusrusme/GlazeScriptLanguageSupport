@@ -37,6 +37,8 @@ public class GReferenceContributor extends PsiReferenceContributor {
                 || (parent instanceof GLetDeclaration letDecl && letDecl.getNameIdentifier() == element)
                 || (parent instanceof GVarDeclaration varDecl && varDecl.getNameIdentifier() == element)
                 || (parent instanceof GForRangeStmt forRange && forRange.getNameIdentifier() == element)
+                || (parent instanceof GForEcsStmt)
+                || (parent instanceof GComponentBinding compBinding && compBinding.getNameIdentifier() == element)
                 || (parent instanceof GOnUpdateDeclaration update && update.getNameIdentifier() == element)
                 || (parent instanceof GOnEventDeclaration event && event.getNameIdentifier() == element);
     }

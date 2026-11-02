@@ -18,7 +18,7 @@ public class GSyntaxHighlighter extends SyntaxHighlighterBase {
             createTextAttributesKey("GLAZE_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
 
     public static final TextAttributesKey TYPE =
-            createTextAttributesKey("GLAZE_TYPE", DefaultLanguageHighlighterColors.KEYWORD);
+            createTextAttributesKey("GLAZE_TYPE", DefaultLanguageHighlighterColors.STATIC_FIELD);
 
     public static final TextAttributesKey NUMBER =
             createTextAttributesKey("GLAZE_NUMBER", DefaultLanguageHighlighterColors.NUMBER);

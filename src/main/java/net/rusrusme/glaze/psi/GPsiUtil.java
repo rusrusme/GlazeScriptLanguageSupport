@@ -1,7 +1,10 @@
 package net.rusrusme.glaze.psi;
 
+import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.TokenType;
+import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,7 +28,7 @@ public final class GPsiUtil {
         List<VisibleSymbol> symbols = new ArrayList<>();
         int caretOffset = element.getTextOffset();
 
-        // 1. Local Variables (let / var) in current scope before caret
+        // 1. Lokale Variablen (let & var) vor der aktuellen Position
         Collection<GLetDeclaration> letDecls = PsiTreeUtil.findChildrenOfType(file, GLetDeclaration.class);
         for (GLetDeclaration decl : letDecls) {
             if (decl.getTextOffset() < caretOffset && decl.getNameIdentifier() != null) {
@@ -39,7 +42,7 @@ public final class GPsiUtil {
             }
         }
 
-        // 2. Enclosing Function / Callback Parameters
+        // 2. Funktionsparameter & Callback-Parameter (on_update, on_event)
         GFunctionDeclaration func = PsiTreeUtil.getParentOfType(element, GFunctionDeclaration.class);
         if (func != null) {
             for (GParameter param : PsiTreeUtil.findChildrenOfType(func, GParameter.class)) {
@@ -57,17 +60,44 @@ public final class GPsiUtil {
             symbols.add(new VisibleSymbol(eventDecl.getNameIdentifier().getText(), "event", eventDecl.getNameIdentifier()));
         }
 
-        // 3. ECS Query Loop Bindings: for (entity e, Velocity v, Position p)
-        GForEcsStmt ecsStmt = PsiTreeUtil.getParentOfType(element, GForEcsStmt.class);
-        if (ecsStmt != null) {
-            for (GComponentBinding binding : PsiTreeUtil.findChildrenOfType(ecsStmt, GComponentBinding.class)) {
-                PsiElement id = binding.getNameIdentifier();
-                if (id != null) {
-                    List<PsiElement> idNodes = PsiTreeUtil.getChildrenOfTypeAsList(binding, PsiElement.class);
-                    String compType = idNodes.isEmpty() ? "component" : idNodes.get(0).getText();
-                    symbols.add(new VisibleSymbol(id.getText(), compType, id));
+        // 3. Hierarchie nach oben durchlaufen (fuer ECS-Loops & Range-Loops)
+        PsiElement cur = element;
+        while (cur != null && !(cur instanceof PsiFile)) {
+            // ECS-View Query: for (entity e, TransformComponent t)
+            if (cur instanceof GForEcsStmt ecsStmt) {
+                // A. Entity-Variable ermitteln (z.B. e)
+                ASTNode entityNode = ecsStmt.getNode().findChildByType(GTypes.TYPE_ENTITY);
+                if (entityNode != null) {
+                    ASTNode next = entityNode.getTreeNext();
+                    while (next != null && (next.getElementType() == TokenType.WHITE_SPACE || next.getElementType() == GTypes.COMMENT)) {
+                        next = next.getTreeNext();
+                    }
+                    if (next != null && next.getElementType() == GTypes.IDENTIFIER) {
+                        symbols.add(new VisibleSymbol(next.getText(), "entity", next.getPsi()));
+                    }
+                }
+
+                // B. Component Bindings ermitteln (z.B. TransformComponent t)
+                for (GComponentBinding binding : PsiTreeUtil.findChildrenOfType(ecsStmt, GComponentBinding.class)) {
+                    ASTNode[] ids = binding.getNode().getChildren(TokenSet.create(GTypes.IDENTIFIER));
+                    if (ids.length >= 2) {
+                        String compType = ids[0].getText(); // TransformComponent
+                        ASTNode varId = ids[1];             // t
+                        symbols.add(new VisibleSymbol(varId.getText(), compType, varId.getPsi()));
+                    } else if (ids.length == 1) {
+                        GType typeNode = PsiTreeUtil.findChildOfType(binding, GType.class);
+                        String compType = typeNode != null ? typeNode.getText() : "component";
+                        symbols.add(new VisibleSymbol(ids[0].getText(), compType, ids[0].getPsi()));
+                    }
                 }
             }
+
+            // Range Loop: for (type item : list)
+            if (cur instanceof GForRangeStmt forRange && forRange.getNameIdentifier() != null) {
+                symbols.add(new VisibleSymbol(forRange.getNameIdentifier().getText(), forRange.getType().getText(), forRange.getNameIdentifier()));
+            }
+
+            cur = cur.getParent();
         }
 
         return symbols;

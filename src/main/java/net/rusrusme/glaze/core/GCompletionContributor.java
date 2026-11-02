@@ -240,40 +240,45 @@ public class GCompletionContributor extends CompletionContributor {
                 }
             }
 
-            // ========================================================================
-            // TYPGESCHÜTZTE DOT-COMPLETION (keine Entity/List-Intrinsics auf Structs)
-            // ========================================================================
-
             private void addDotCompletions(CompletionResultSet result, PsiElement position, CharSequence text, int dotOffset) {
                 String varName = getIdentifierBeforeDot(text, dotOffset);
                 String varType = resolveVariableType(position, varName);
 
                 // 1. Speziell für Builtin 'entity'
                 if ("entity".equals(varType)) {
-                    result.addElement(LookupElementBuilder.create("id").withTypeText("uint64", true).withIcon(AllIcons.Nodes.Field).bold());
-                    result.addElement(LookupElementBuilder.create("get").withTailText("(Component)", true).withIcon(AllIcons.Nodes.Method).bold());
-                    result.addElement(LookupElementBuilder.create("add").withTailText("(Component)", true).withIcon(AllIcons.Nodes.Method).bold());
-                    result.addElement(LookupElementBuilder.create("has").withTailText("(Component)", true).withIcon(AllIcons.Nodes.Method).bold());
-                    result.addElement(LookupElementBuilder.create("remove").withTailText("(Component)", true).withIcon(AllIcons.Nodes.Method).bold());
+                    result.addElement(PrioritizedLookupElement.withPriority(
+                            LookupElementBuilder.create("id").withTypeText("uint64", true).withIcon(AllIcons.Nodes.Field).bold(), 200.0));
+                    result.addElement(PrioritizedLookupElement.withPriority(
+                            LookupElementBuilder.create("get").withTailText("(Component)", true).withIcon(AllIcons.Nodes.Method).bold(), 200.0));
+                    result.addElement(PrioritizedLookupElement.withPriority(
+                            LookupElementBuilder.create("add").withTailText("(Component)", true).withIcon(AllIcons.Nodes.Method).bold(), 200.0));
+                    result.addElement(PrioritizedLookupElement.withPriority(
+                            LookupElementBuilder.create("has").withTailText("(Component)", true).withIcon(AllIcons.Nodes.Method).bold(), 200.0));
+                    result.addElement(PrioritizedLookupElement.withPriority(
+                            LookupElementBuilder.create("remove").withTailText("(Component)", true).withIcon(AllIcons.Nodes.Method).bold(), 200.0));
                     return;
                 }
 
                 // 2. Speziell für 'list<T>'
                 if (varType.startsWith("list")) {
-                    result.addElement(LookupElementBuilder.create("size").withTypeText("int32", true).withIcon(AllIcons.Nodes.Property).bold());
-                    result.addElement(LookupElementBuilder.create("add").withTailText("(item)", true).withIcon(AllIcons.Nodes.Method).bold());
-                    result.addElement(LookupElementBuilder.create("remove_at").withTailText("(index)", true).withIcon(AllIcons.Nodes.Method).bold());
-                    result.addElement(LookupElementBuilder.create("clear").withTailText("()", true).withIcon(AllIcons.Nodes.Method).bold());
+                    result.addElement(PrioritizedLookupElement.withPriority(
+                            LookupElementBuilder.create("size").withTypeText("int32", true).withIcon(AllIcons.Nodes.Property).bold(), 200.0));
+                    result.addElement(PrioritizedLookupElement.withPriority(
+                            LookupElementBuilder.create("add").withTailText("(item)", true).withIcon(AllIcons.Nodes.Method).bold(), 200.0));
+                    result.addElement(PrioritizedLookupElement.withPriority(
+                            LookupElementBuilder.create("remove_at").withTailText("(index)", true).withIcon(AllIcons.Nodes.Method).bold(), 200.0));
+                    result.addElement(PrioritizedLookupElement.withPriority(
+                            LookupElementBuilder.create("clear").withTailText("()", true).withIcon(AllIcons.Nodes.Method).bold(), 200.0));
                     return;
                 }
 
-                // 3. Vektoren & Quat: Nur Swizzles
+                // 3. Vektoren & Quat: Swizzles
                 if (isVectorType(varType)) {
                     addVectorSwizzles(result, varType);
                     return;
                 }
 
-                // 4. Custom Structs & Components: Eigene Member vorschlagen
+                // 4. Custom Structs & Components: Eigene Felder vorschlagen
                 if (!varType.isEmpty()) {
                     boolean found = addCustomMembers(result, position, varType);
                     if (found) return;

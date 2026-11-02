@@ -4,6 +4,7 @@ import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNameIdentifierOwner;
+import com.intellij.psi.tree.TokenSet;
 import com.intellij.util.IncorrectOperationException;
 import net.rusrusme.glaze.psi.*;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +17,12 @@ public abstract class GNamedElementImpl extends ASTWrapperPsiElement implements 
 
     @Override
     public @Nullable PsiElement getNameIdentifier() {
+        if (this instanceof GComponentBinding) {
+            ASTNode[] ids = getNode().getChildren(TokenSet.create(GTypes.IDENTIFIER));
+            if (ids.length >= 2) {
+                return ids[1].getPsi();
+            }
+        }
         return findChildByType(GTypes.IDENTIFIER);
     }
 
