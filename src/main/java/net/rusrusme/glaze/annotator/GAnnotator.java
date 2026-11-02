@@ -65,6 +65,7 @@ public class GAnnotator implements Annotator {
                 || parent instanceof GSystemDeclaration || parent instanceof GFunctionDeclaration
                 || parent instanceof GFieldDeclaration || parent instanceof GParameter
                 || parent instanceof GLetDeclaration || parent instanceof GVarDeclaration
+                || parent instanceof GForRangeStmt
                 || parent instanceof GMemberAccess || parent instanceof GScopedIdentifier
                 || parent instanceof GComponentBinding || parent instanceof GUserType) {
             return;
