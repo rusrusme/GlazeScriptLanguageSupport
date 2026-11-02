@@ -23,8 +23,8 @@ COMMENT="#"[^\r\n]*
 IDENTIFIER=[a-zA-Z_][a-zA-Z0-9_]*
 INT_LITERAL=[0-9]+
 FLOAT_LITERAL=[0-9]+\.[0-9]+([fF])?
-STRING_LITERAL=\"([^\\\"\r\n]|\\.)*\"
-CHAR_LITERAL='([^\\'\r\n]|\\.)'
+STRING_LITERAL=\"([^\\\"\r\n]|\\.)*\"?
+CHAR_LITERAL='([^\\'\r\n]|\\.)'?
 
 %%
 

@@ -16,18 +16,22 @@ import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAtt
 public class GSyntaxHighlighter extends SyntaxHighlighterBase {
     public static final TextAttributesKey KEYWORD =
             createTextAttributesKey("GLAZE_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
-    public static final TextAttributesKey ECS_KEYWORD =
-            createTextAttributesKey("GLAZE_ECS_KEYWORD", DefaultLanguageHighlighterColors.KEYWORD);
+
     public static final TextAttributesKey TYPE =
-            createTextAttributesKey("GLAZE_TYPE", DefaultLanguageHighlighterColors.CLASS_NAME);
+            createTextAttributesKey("GLAZE_TYPE", DefaultLanguageHighlighterColors.KEYWORD);
+
     public static final TextAttributesKey NUMBER =
             createTextAttributesKey("GLAZE_NUMBER", DefaultLanguageHighlighterColors.NUMBER);
+
     public static final TextAttributesKey STRING =
             createTextAttributesKey("GLAZE_STRING", DefaultLanguageHighlighterColors.STRING);
+
     public static final TextAttributesKey OPERATION_SIGN =
             createTextAttributesKey("GLAZE_OPERATION_SIGN", DefaultLanguageHighlighterColors.OPERATION_SIGN);
+
     public static final TextAttributesKey COMMENT =
             createTextAttributesKey("GLAZE_COMMENT", DefaultLanguageHighlighterColors.LINE_COMMENT);
+
     public static final TextAttributesKey INTRINSIC =
             createTextAttributesKey("GLAZE_INTRINSIC", DefaultLanguageHighlighterColors.STATIC_METHOD);
 

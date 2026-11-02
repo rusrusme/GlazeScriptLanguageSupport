@@ -34,9 +34,6 @@
         <lang.commenter language="GlazeScript"
                         implementationClass="net.rusrusme.glaze.core.GCommenter"/>
 
-        <lang.quoteHandler language="GlazeScript"
-                           implementationClass="net.rusrusme.glaze.core.GQuoteHandler"/>
-
         <completion.contributor language="GlazeScript"
                                 implementationClass="net.rusrusme.glaze.core.GCompletionContributor"/>
 
@@ -51,6 +48,12 @@
 
         <codeStyleSettingsProvider
                 implementation="net.rusrusme.glaze.formatting.GLanguageCodeStyleSettingsProvider"/>
+
+        <colorSettingsPage
+                implementation="net.rusrusme.glaze.highlight.GColorSettingsPage"/>
+
+        <quoteHandler fileType="Glaze Script File"
+                      className="net.rusrusme.glaze.core.GQuoteHandler"/>
 
     </extensions>
 
