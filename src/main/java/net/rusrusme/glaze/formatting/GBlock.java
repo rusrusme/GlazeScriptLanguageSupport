@@ -38,7 +38,8 @@ public class GBlock extends AbstractBlock {
         IElementType type = myNode.getElementType();
         if (type == GTypes.BLOCK || type == GTypes.STRUCT_DECLARATION
                 || type == GTypes.COMPONENT_DECLARATION || type == GTypes.SYSTEM_DECLARATION
-                || type == GTypes.ENUM_DECLARATION || type == GTypes.SWITCH_STMT) {
+                || type == GTypes.ENUM_DECLARATION || type == GTypes.SWITCH_STMT
+                || type == GTypes.FUNCTION_DECLARATION) {
             return new ChildAttributes(Indent.getNormalIndent(), null);
         }
         return new ChildAttributes(Indent.getNoneIndent(), null);
@@ -46,21 +47,51 @@ public class GBlock extends AbstractBlock {
 
     @Override
     public @Nullable Indent getIndent() {
-        ASTNode parent = myNode.getTreeParent();
-        if (parent == null) return Indent.getNoneIndent();
+        ASTNode parentNode = myNode.getTreeParent();
+        if (parentNode == null) {
+            return Indent.getNoneIndent();
+        }
 
-        IElementType parentType = parent.getElementType();
-        IElementType myType = myNode.getElementType();
+        IElementType parentType = parentNode.getElementType();
+        IElementType elementType = myNode.getElementType();
 
-        if (parentType == GTypes.BLOCK || parentType == GTypes.STRUCT_DECLARATION
-                || parentType == GTypes.COMPONENT_DECLARATION || parentType == GTypes.SYSTEM_DECLARATION
-                || parentType == GTypes.ENUM_DECLARATION) {
-            if (myType == GTypes.LBRACE || myType == GTypes.RBRACE) {
+        // 1. Statements inside blocks { ... }
+        if (parentType == GTypes.BLOCK) {
+            if (elementType == GTypes.LBRACE || elementType == GTypes.RBRACE) {
                 return Indent.getNoneIndent();
             }
             return Indent.getNormalIndent();
         }
+
+        // 2. Members inside struct, component, system, enum declarations
+        if (parentType == GTypes.STRUCT_DECLARATION
+                || parentType == GTypes.COMPONENT_DECLARATION
+                || parentType == GTypes.SYSTEM_DECLARATION
+                || parentType == GTypes.ENUM_DECLARATION) {
+            if (isInsideBraces(parentNode, myNode)) {
+                return Indent.getNormalIndent();
+            }
+            return Indent.getNoneIndent();
+        }
+
         return Indent.getNoneIndent();
+    }
+
+    /**
+     * Ensures only elements strictly between { and } get indented.
+     * Prevents the declaration headers ('system Foo', 'struct Bar') from shifting.
+     */
+    private boolean isInsideBraces(@NotNull ASTNode parentNode, @NotNull ASTNode childNode) {
+        IElementType type = childNode.getElementType();
+        if (type == GTypes.LBRACE || type == GTypes.RBRACE) {
+            return false;
+        }
+        ASTNode lBrace = parentNode.findChildByType(GTypes.LBRACE);
+        if (lBrace == null || childNode.getStartOffset() <= lBrace.getStartOffset()) {
+            return false;
+        }
+        ASTNode rBrace = parentNode.findChildByType(GTypes.RBRACE);
+        return rBrace == null || childNode.getStartOffset() < rBrace.getStartOffset();
     }
 
     @Override

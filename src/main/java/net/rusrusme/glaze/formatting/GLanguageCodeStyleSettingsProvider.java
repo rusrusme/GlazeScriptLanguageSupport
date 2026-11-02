@@ -18,6 +18,7 @@ public class GLanguageCodeStyleSettingsProvider extends LanguageCodeStyleSetting
         indentOptions.INDENT_SIZE = 4;
         indentOptions.TAB_SIZE = 4;
         indentOptions.CONTINUATION_INDENT_SIZE = 4;
+        indentOptions.USE_TAB_CHARACTER = false;
     }
 
     @Override

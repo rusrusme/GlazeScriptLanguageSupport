@@ -27,6 +27,16 @@ public class GCompletionContributor extends CompletionContributor {
             templateManager.startTemplate(editor, template);
         };
 
+        InsertHandler<LookupElement> listInsertHandler = (ctx, item) -> {
+            Editor editor = ctx.getEditor();
+            Project project = ctx.getProject();
+            TemplateManager templateManager = TemplateManager.getInstance(project);
+            // Inserts <$TYPE$> with tab-stop, pressing Enter/Tab jumps to $END$
+            Template template = templateManager.createTemplate("", "", "<$TYPE$>$END$");
+            template.addVariable("TYPE", new ConstantNode(""), true);
+            templateManager.startTemplate(editor, template);
+        };
+
         extend(CompletionType.BASIC, PlatformPatterns.psiElement(), new CompletionProvider<>() {
             @Override
             protected void addCompletions(@NotNull CompletionParameters parameters,
@@ -97,6 +107,15 @@ public class GCompletionContributor extends CompletionContributor {
                                     .withIcon(AllIcons.Nodes.Variable)
                                     .bold(), 150.0));
                 }
+
+                LookupElementBuilder listElement = LookupElementBuilder.create("list")
+                        .bold()
+                        .withTailText("<T>", true)
+                        .withTypeText("Container", true)
+                        .withIcon(AllIcons.Nodes.Type)
+                        .withInsertHandler(listInsertHandler);
+
+                result.addElement(PrioritizedLookupElement.withPriority(listElement, 140.0));
             }
 
             private void addDotCompletions(CompletionResultSet result, PsiElement position, CharSequence text, int dotOffset) {

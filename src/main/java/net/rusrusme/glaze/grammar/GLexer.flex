@@ -18,8 +18,7 @@ import net.rusrusme.glaze.psi.GTypes;
 %eof}
 
 WHITE_SPACE=[\ \t\r\n]+
-LINE_COMMENT="//"[^\r\n]*
-BLOCK_COMMENT="/"\*([^*]|\*+[^/*])*\*+"/"
+COMMENT="#"[^\r\n]*
 
 IDENTIFIER=[a-zA-Z_][a-zA-Z0-9_]*
 INT_LITERAL=[0-9]+
@@ -31,8 +30,7 @@ CHAR_LITERAL='([^\\'\r\n]|\\.)'
 
 <YYINITIAL> {
   {WHITE_SPACE}         { return TokenType.WHITE_SPACE; }
-  {LINE_COMMENT}        { return GTypes.COMMENT; }
-  {BLOCK_COMMENT}       { return GTypes.COMMENT; }
+  {COMMENT}             { return GTypes.COMMENT; }
 
   // Declarations & ECS Keywords
   "struct"              { return GTypes.KEYWORD_STRUCT; }
